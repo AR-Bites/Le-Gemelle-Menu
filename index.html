@@ -8,6 +8,9 @@
   <!-- Include Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
+  <!-- Embla Carousel for swiping -->
+  <script src="https://unpkg.com/embla-carousel/embla-carousel.umd.js"></script>
+  
   <!-- Include Google's Model Viewer for 3D and AR -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   
@@ -17,7 +20,7 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #f8f5f2;
+      background-color: #ffffff;
       color: #333;
     }
     
@@ -25,126 +28,161 @@
       font-family: 'Playfair Display', serif;
     }
     
-    .model-viewer-container {
+    .carousel {
+      overflow: hidden;
+    }
+    
+    .carousel-container {
+      display: flex;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .carousel-slide {
+      min-width: 100%;
+      padding: 0 10px;
+      position: relative;
+    }
+    
+    @media (min-width: 768px) {
+      .carousel-slide {
+        min-width: 50%;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .carousel-slide {
+        min-width: 33.33%;
+      }
+    }
+    
+    model-viewer {
       width: 100%;
       height: 300px;
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin: 20px 0;
-      background-color: #f5f5f5;
+      background-color: #f8f8f8;
+      --poster-color: transparent;
+      border-radius: 0.5rem;
     }
     
-    .ar-button {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #D4AF37 0%, #E8C547 100%);
-      color: #1A3A2F;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 25px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      z-index: 10;
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { transform: translateX(-50%) scale(1); }
-      50% { transform: translateX(-50%) scale(1.03); }
-      100% { transform: translateX(-50%) scale(1); }
-    }
-    
-    .nav-buttons {
+    .modal {
+      display: none;
       position: fixed;
-      bottom: 80px;
+      top: 0;
       left: 0;
       right: 0;
-      display: flex;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.85);
+      z-index: 50;
+      align-items: center;
       justify-content: center;
-      gap: 20px;
-      padding: 15px;
-      background: rgba(255, 255, 255, 0.9);
+      padding: 1rem;
       backdrop-filter: blur(5px);
-      z-index: 100;
-      border-top: 1px solid rgba(0,0,0,0.1);
     }
     
-    .nav-button {
-      background: #1A3A2F;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 25px;
-      font-weight: 600;
-      cursor: pointer;
+    .modal-content {
+      background-color: white;
+      border-radius: 1rem;
+      overflow: hidden;
+      width: 100%;
+      max-width: 32rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .loading-spinner {
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top: 3px solid #ffffff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -20px;
+      margin-left: -20px;
+      z-index: 1;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .model-container {
+      position: relative;
+      height: 350px;
+      background: linear-gradient(45deg, #f8f8f8, #eaeaea);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .menu-card {
+      border: 1px solid #eaeaea;
+      background: white;
+      border-radius: 1rem;
+      overflow: hidden;
+      height: 100%;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .menu-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .model-preview {
+      height: 180px;
+      background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .model-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+    }
+    
+    .btn {
       transition: all 0.2s ease;
     }
     
-    .nav-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .btn:hover {
+      transform: translateY(-2px);
     }
     
-    .nav-button:active {
-      transform: scale(0.98);
+    .btn:active {
+      transform: translateY(0);
     }
     
-    .counter {
+    .nav-button {
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      color: #D4AF37;
-      min-width: 60px;
-    }
-    
-    .food-title {
-      color: #1A3A2F;
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    
-    .food-desc {
-      color: #555;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    
-    .food-container {
+      border-radius: 50%;
       background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 500px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      transition: all 0.2s ease;
     }
     
-    .ar-instructions {
-      background: #f8f8f8;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 20px;
-      font-size: 0.9rem;
-    }
-    
-    .ar-instructions ol {
-      list-style-type: decimal;
-      padding-left: 20px;
-      margin-top: 8px;
-    }
-    
-    .ar-instructions li {
-      margin-bottom: 6px;
+    .nav-button:hover {
+      background: #f9fafb;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
   </style>
 </head>
@@ -155,54 +193,23 @@
     </div>
   </header>
   
-  <main class="flex-grow py-8 px-4">
-    <div class="container mx-auto max-w-3xl">
-      <h1 class="text-3xl md:text-4xl font-bold text-center mb-3 text-[#1A3A2F]">Our Menu in 3D</h1>
-      <p class="text-center text-gray-600 mb-10 max-w-xl mx-auto">Experience our dishes through augmented reality</p>
+  <main class="flex-grow py-8 px-4 bg-gray-50">
+    <div class="container mx-auto max-w-6xl">
+      <h1 class="text-3xl md:text-4xl font-bold text-center mb-3">Immerse yourself in our menu</h1>
+      <p class="text-center text-gray-600 mb-10 max-w-xl mx-auto">through the magic of augmented reality</p>
       
-      <div class="food-container">
-        <h2 class="food-title" id="food-title">Margherita Pizza</h2>
-        <p class="food-desc" id="food-desc">San Marzano tomato sauce, fresh mozzarella, basil</p>
-        
-        <div class="model-viewer-container">
-          <model-viewer
-            id="model-viewer"
-            src="models/Margherita Pizza.glb"
-            ar
-            ar-modes="quick-look scene-viewer webxr"
-            camera-controls
-            auto-rotate
-            shadow-intensity="1.2"
-            exposure="1.1"
-            alt="3D model of Margherita Pizza"
-          >
-            <button slot="ar-button" class="ar-button">
-              VIEW IN YOUR SPACE
-            </button>
-          </model-viewer>
+      <div class="carousel">
+        <div class="carousel-container" id="menuCarousel">
+          <!-- Menu items will be inserted here -->
         </div>
         
-        <div class="ar-instructions">
-          <p class="font-medium">How to view in AR:</p>
-          <ol>
-            <li>Tap "VIEW IN YOUR SPACE" button</li>
-            <li>Point your camera at a flat surface</li>
-            <li>Move your device slowly to detect the surface</li>
-            <li>The 3D model will appear on the detected surface</li>
-            <li>Pinch to resize or drag to reposition the model</li>
-          </ol>
-        </div>
-        
-        <div class="nav-buttons">
-          <button id="prev-btn" class="nav-button">
+        <div class="flex justify-center mt-8 gap-4">
+          <button id="prevButton" class="nav-button">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
-            PREV
           </button>
-          <span class="counter" id="counter">1/6</span>
-          <button id="next-btn" class="nav-button">
-            NEXT
+          <button id="nextButton" class="nav-button">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -211,110 +218,284 @@
       </div>
     </div>
   </main>
-
+  
+  <!-- AR Modal -->
+  <div id="arModal" class="modal">
+    <div class="modal-content">
+      <div class="flex justify-between items-center p-6 border-b">
+        <h3 id="modalTitle" class="font-bold text-2xl">Food Item Name</h3>
+        <button id="closeModal" class="p-1 rounded-full hover:bg-gray-100 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="model-container">
+        <div id="loadingSpinner" class="loading-spinner"></div>
+        <!-- 3D Model Viewer with AR capabilities -->
+        <model-viewer id="modelViewer"
+          camera-controls
+          auto-rotate
+          rotation-per-second="30deg"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          ar-scale="auto"
+          shadow-intensity="1"
+          environment-image="neutral"
+          exposure="0.8"
+          class="hidden">
+          <button slot="ar-button" id="ar-button" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg">
+            View in your space
+          </button>
+        </model-viewer>
+      </div>
+      
+      <div class="p-6">
+        <p id="modalDescription" class="text-gray-600 mb-6">Description of the food item will appear here.</p>
+        <button id="viewInAR" class="w-full bg-black text-white px-6 py-4 rounded-lg hover:bg-gray-800 transition btn font-medium">
+          VIEW IN AR
+        </button>
+      </div>
+      
+      <div class="p-6 bg-gray-50 border-t">
+        <p class="font-medium mb-3">How to use AR:</p>
+        <ol class="list-decimal ml-5 space-y-2 text-sm text-gray-600">
+          <li>Point your camera at a flat surface</li>
+          <li>Move your phone slowly to detect the surface</li>
+          <li>The 3D model will appear on the detected surface</li>
+          <li>Pinch to resize or drag to reposition the model</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  
   <script>
-    // Menu data with 3D model links
+    // Menu data with 3D model links only
     const menuItems = [
       {
-        title: "Margherita Pizza",
-        description: "San Marzano tomato sauce, fresh mozzarella, basil",
-        model: "models/Margherita Pizza.glb"
+        id: 1,
+        name: "Margherita",
+        description: "San Marzano tomato sauce, fresh mozzarella, basil, olive oil",
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Example model URL
       },
       {
-        title: "Pepperoni Pizza",
-        description: "Pepperoni, mozzarella, tomato sauce",
-        model: "models/Pepperoni Pizza.glb"
+        id: 2,
+        name: "Prosciutto",
+        description: "Tomato sauce, mozzarella, prosciutto di Parma, arugula, parmesan",
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Example model URL
       },
       {
-        title: "Fettuccine Alfredo",
-        description: "Handmade pasta, black truffle, parmesan cream",
-        model: "models/Fettuccine Alfredo.glb"
+        id: 3,
+        name: "Tartufo",
+        description: "Truffle cream, mozzarella, mushrooms, truffle oil",
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Example model URL
       },
       {
-        title: "Pesto Pasta",
-        description: "Basil pesto, pine nuts, aged parmesan",
-        model: "models/Pesto Pasta.glb"
+        id: 4,
+        name: "Diavola",
+        description: "Tomato sauce, spicy salami, mozzarella, chili flakes",
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Example model URL
       },
       {
-        title: "Rose Pasta",
-        description: "Creamy tomato sauce, permesan cheese, basil",
-        model: "models/Rose Pasta.glb"
+        id: 5,
+        name: "Quattro Formaggi",
+        description: "Mozzarella, gorgonzola, parmesan, ricotta, arugula",
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Example model URL
       },
       {
-        title: "Sea Food Pasta",
-        description: "Mix of sea food with spaghiti",
-        model: "models/Sea Food Pasta.glb"
+        id: 6,
+        name: "Vegetariana",
+        description: "Tomato sauce, mozzarella, bell peppers, mushrooms, olives, artichokes",
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Example model URL
       }
     ];
     
     // DOM elements
-    const modelViewer = document.getElementById('model-viewer');
-    const foodTitle = document.getElementById('food-title');
-    const foodDesc = document.getElementById('food-desc');
-    const counter = document.getElementById('counter');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    const menuCarousel = document.getElementById('menuCarousel');
+    const arModal = document.getElementById('arModal');
+    const closeModal = document.getElementById('closeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
+    const modelViewer = document.getElementById('modelViewer');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const prevButton = document.getElementById('prevButton');
+    const nextButton = document.getElementById('nextButton');
+    const viewInARButton = document.getElementById('viewInAR');
     
-    let currentIndex = 0;
+    // Cache for preloaded models
+    const modelCache = {};
     
-    // Update the displayed model
-    function updateModel() {
-      const food = menuItems[currentIndex];
-      
-      // First reset the model-viewer
-      modelViewer.removeAttribute('src');
-      modelViewer.loading = 'eager';
-      
-      // Set the new model after a small delay to ensure reset
-      setTimeout(() => {
-        modelViewer.src = food.model;
-        modelViewer.setAttribute('alt', `3D model of ${food.title}`);
-        
-        // Force reload the model
-        if (modelViewer.model) {
-          modelViewer.model.visible = false;
-          setTimeout(() => {
-            modelViewer.model.visible = true;
-          }, 100);
-        }
-      }, 50);
-      
-      foodTitle.textContent = food.title;
-      foodDesc.textContent = food.description;
-      counter.textContent = `${currentIndex + 1}/${menuItems.length}`;
-      
-      // Disable buttons at boundaries
-      prevBtn.disabled = currentIndex === 0;
-      nextBtn.disabled = currentIndex === menuItems.length - 1;
+    // Preload models
+    function preloadModels() {
+      // Only preload the first 3 models to save bandwidth
+      for (let i = 0; i < Math.min(3, menuItems.length); i++) {
+        fetch(menuItems[i].modelUrl, { method: 'HEAD' })
+          .then(() => { modelCache[menuItems[i].id] = true; })
+          .catch(err => console.error('Error preloading model:', err));
+      }
     }
     
-    // Event listeners for navigation
-    prevBtn.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateModel();
-      }
-    });
+    // Render menu items
+    function renderMenuItems() {
+      menuItems.forEach(item => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        
+        slide.innerHTML = `
+          <div class="menu-card flex flex-col">
+            <div class="model-preview">
+              <div class="model-badge">3D</div>
+              <div class="circle-360 flex items-center justify-center w-16 h-16 bg-white rounded-full">
+                <span class="text-xl font-semibold">360°</span>
+              </div>
+            </div>
+            <div class="p-5 flex-grow">
+              <h3 class="font-bold text-xl mb-2">${item.name}</h3>
+              <p class="text-gray-600 text-sm mb-4">${item.description}</p>
+              <div class="flex justify-end">
+                <button
+                  data-id="${item.id}"
+                  class="view-in-3d bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition btn"
+                >
+                  View in 3D
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        menuCarousel.appendChild(slide);
+      });
+    }
     
-    nextBtn.addEventListener('click', () => {
-      if (currentIndex < menuItems.length - 1) {
-        currentIndex++;
-        updateModel();
-      }
-    });
+    // Initialize carousel
+    let emblaCarousel;
+    function initCarousel() {
+      emblaCarousel = new EmblaCarousel(document.querySelector('.carousel'), { 
+        loop: true,
+        align: 'center',
+        dragFree: true
+      });
+      
+      // Add click listeners to prev/next buttons
+      prevButton.addEventListener('click', () => emblaCarousel.scrollPrev());
+      nextButton.addEventListener('click', () => emblaCarousel.scrollNext());
+    }
     
-    // Initialize
+    // Show modal with 3D model
+    function showARModal(itemId) {
+      const item = menuItems.find(item => item.id === itemId);
+      if (!item) return;
+      
+      modalTitle.textContent = item.name;
+      modalDescription.textContent = item.description;
+      
+      // Show the modal with loading spinner visible and model hidden
+      arModal.style.display = 'flex';
+      loadingSpinner.classList.remove('hidden');
+      modelViewer.classList.add('hidden');
+      
+      // Reset the modelViewer completely
+      while (modelViewer.firstChild) {
+        if (modelViewer.firstChild.id !== 'ar-button') {
+          modelViewer.removeChild(modelViewer.firstChild);
+        }
+      }
+      
+      // Clear all attributes except essential ones
+      const attributes = modelViewer.getAttributeNames();
+      for (const attr of attributes) {
+        if (attr !== 'id' && !attr.startsWith('ar') && attr !== 'camera-controls' && 
+            attr !== 'auto-rotate' && attr !== 'rotation-per-second' && attr !== 'class' && 
+            attr !== 'shadow-intensity' && attr !== 'environment-image' && attr !== 'exposure') {
+          modelViewer.removeAttribute(attr);
+        }
+      }
+      
+      // Set the model source
+      modelViewer.setAttribute('src', item.modelUrl);
+      
+      // Add alt text
+      modelViewer.setAttribute('alt', `3D model of ${item.name}`);
+      
+      // When the model is loaded, hide spinner and show model
+      modelViewer.addEventListener('load', function modelLoaded() {
+        loadingSpinner.classList.add('hidden');
+        modelViewer.classList.remove('hidden');
+        modelViewer.removeEventListener('load', modelLoaded);
+      }, { once: true });
+      
+      // If loading takes too long, show model anyway after a timeout
+      setTimeout(() => {
+        loadingSpinner.classList.add('hidden');
+        modelViewer.classList.remove('hidden');
+      }, 5000);
+    }
+    
+    // Close modal
+    function hideARModal() {
+      arModal.style.display = 'none';
+      
+      // Complete cleanup of the model-viewer
+      modelViewer.setAttribute('src', '');
+      modelViewer.classList.add('hidden');
+      
+      // Force browser to release resources
+      setTimeout(() => {
+        while (modelViewer.firstChild) {
+          if (modelViewer.firstChild.id !== 'ar-button') {
+            modelViewer.removeChild(modelViewer.firstChild);
+          } else {
+            break;
+          }
+        }
+      }, 100);
+    }
+    
+    // Add event listeners
     document.addEventListener('DOMContentLoaded', () => {
-      updateModel();
+      renderMenuItems();
+      initCarousel();
+      preloadModels();
       
-      // Set the restaurant logo
-      document.getElementById('logo').src = 'logo-1-removebg-preview.png';
+      // Add listeners for View in 3D buttons
+      document.addEventListener('click', (e) => {
+        const button = e.target.closest('.view-in-3d');
+        if (button) {
+          const itemId = parseInt(button.dataset.id);
+          hideARModal(); // Ensure complete cleanup before opening new model
+          setTimeout(() => {
+            showARModal(itemId);
+          }, 100);
+        }
+      });
       
-      // Ensure model-viewer is properly initialized
-      customElements.whenDefined('model-viewer').then(() => {
-        console.log('model-viewer is defined');
+      // Close modal event
+      closeModal.addEventListener('click', hideARModal);
+      
+      // Close modal when clicking outside
+      arModal.addEventListener('click', (e) => {
+        if (e.target === arModal) {
+          hideARModal();
+        }
+      });
+      
+      // AR button click
+      viewInARButton.addEventListener('click', () => {
+        modelViewer.activateAR();
+      });
+      
+      // Handle escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && arModal.style.display === 'flex') {
+          hideARModal();
+        }
       });
     });
+    
+    // Set the restaurant logo
+    document.getElementById('logo').src = 'logo-1-removebg-preview.png';
   </script>
 </body>
 </html>
