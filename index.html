@@ -15,12 +15,17 @@
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   
   <!-- Include Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Poppins', sans-serif;
       background-color: #ffffff;
+      color: #333;
+    }
+    
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', serif;
     }
     
     .carousel {
@@ -55,12 +60,9 @@
     model-viewer {
       width: 100%;
       height: 300px;
-      background-color: #f3f4f6;
+      background-color: #f8f8f8;
       --poster-color: transparent;
-    }
-    
-    .ar-button {
-      margin-top: 10px;
+      border-radius: 0.5rem;
     }
     
     .modal {
@@ -70,33 +72,35 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(0, 0, 0, 0.75);
+      background-color: rgba(0, 0, 0, 0.85);
       z-index: 50;
       align-items: center;
       justify-content: center;
       padding: 1rem;
+      backdrop-filter: blur(5px);
     }
     
     .modal-content {
       background-color: white;
-      border-radius: 0.5rem;
+      border-radius: 1rem;
       overflow: hidden;
       width: 100%;
       max-width: 32rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
     
     .loading-spinner {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #000;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top: 3px solid #ffffff;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       animation: spin 1s linear infinite;
       position: absolute;
       top: 50%;
       left: 50%;
-      margin-top: -25px;
-      margin-left: -25px;
+      margin-top: -20px;
+      margin-left: -20px;
       z-index: 1;
     }
     
@@ -107,39 +111,106 @@
     
     .model-container {
       position: relative;
-      height: 300px;
+      height: 350px;
+      background: linear-gradient(45deg, #f8f8f8, #eaeaea);
     }
     
     .hidden {
       display: none;
     }
+    
+    .menu-card {
+      border: 1px solid #eaeaea;
+      background: white;
+      border-radius: 1rem;
+      overflow: hidden;
+      height: 100%;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .menu-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .model-preview {
+      height: 180px;
+      background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .model-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+    }
+    
+    .btn {
+      transition: all 0.2s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .nav-button {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      transition: all 0.2s ease;
+    }
+    
+    .nav-button:hover {
+      background: #f9fafb;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
   </style>
 </head>
 <body>
-  <header class="w-full bg-white py-4 border-b border-gray-200">
+  <header class="w-full bg-white py-6 border-b border-gray-100">
     <div class="container mx-auto flex justify-center items-center p-2">
       <img id="logo" src="logo-1-removebg-preview.png" alt="Restaurant Logo" class="h-16 md:h-20">
     </div>
   </header>
   
-  <main class="flex-grow py-6 px-4">
-    <div class="container mx-auto max-w-4xl">
-      <h1 class="text-2xl font-semibold text-center mb-8">Immerse yourself
- in our menu <br> through the magic of augmented reality</h1>
+  <main class="flex-grow py-8 px-4 bg-gray-50">
+    <div class="container mx-auto max-w-6xl">
+      <h1 class="text-3xl md:text-4xl font-bold text-center mb-3">Immerse yourself in our menu</h1>
+      <p class="text-center text-gray-600 mb-10 max-w-xl mx-auto">through the magic of augmented reality</p>
       
       <div class="carousel">
         <div class="carousel-container" id="menuCarousel">
           <!-- Menu items will be inserted here -->
         </div>
         
-        <div class="flex justify-center mt-4 gap-2">
-          <button id="prevButton" class="bg-white border border-gray-300 rounded-full p-2 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex justify-center mt-8 gap-4">
+          <button id="prevButton" class="nav-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <button id="nextButton" class="bg-white border border-gray-300 rounded-full p-2 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button id="nextButton" class="nav-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -151,9 +222,9 @@
   <!-- AR Modal -->
   <div id="arModal" class="modal">
     <div class="modal-content">
-      <div class="flex justify-between items-center p-4 border-b">
-        <h3 id="modalTitle" class="font-bold text-xl">Food Item Name</h3>
-        <button id="closeModal" class="p-1">
+      <div class="flex justify-between items-center p-6 border-b">
+        <h3 id="modalTitle" class="font-bold text-2xl">Food Item Name</h3>
+        <button id="closeModal" class="p-1 rounded-full hover:bg-gray-100 transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -166,6 +237,7 @@
         <model-viewer id="modelViewer"
           camera-controls
           auto-rotate
+          rotation-per-second="30deg"
           ar
           ar-modes="webxr scene-viewer quick-look"
           ar-scale="auto"
@@ -176,79 +248,69 @@
         </model-viewer>
       </div>
       
-      <div class="p-4">
-        <button id="viewInAR" class="w-full bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition">
+      <div class="p-6">
+        <p id="modalDescription" class="text-gray-600 mb-6">Description of the food item will appear here.</p>
+        <button id="viewInAR" class="w-full bg-black text-white px-6 py-4 rounded-lg hover:bg-gray-800 transition btn font-medium">
           VIEW IN AR
         </button>
       </div>
       
-      <div class="p-4 bg-gray-50">
-        <p class="font-medium">How to use AR:</p>
-        <ol class="list-decimal ml-5 mt-2 text-sm text-gray-700">
+      <div class="p-6 bg-gray-50 border-t">
+        <p class="font-medium mb-3">How to use AR:</p>
+        <ol class="list-decimal ml-5 space-y-2 text-sm text-gray-600">
           <li>Point your camera at a flat surface</li>
           <li>Move your phone slowly to detect the surface</li>
           <li>The 3D model will appear on the detected surface</li>
+          <li>Pinch to resize or drag to reposition the model</li>
         </ol>
       </div>
     </div>
   </div>
   
   <script>
-    // Sample menu data with 3D model links
+    // Menu data with 3D model links only
     const menuItems = [
       {
         id: 1,
         name: "Margherita",
         description: "San Marzano tomato sauce, fresh mozzarella, basil, olive oil",
         price: 14.0,
-        imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591",
-        modelUrl: "models/AR-Code-1744457119.glb",
-        available: true
+        modelUrl: "models/AR-Code-1744457119.glb"
       },
       {
         id: 2,
         name: "Prosciutto",
         description: "Tomato sauce, mozzarella, prosciutto di Parma, arugula, parmesan",
         price: 18.0,
-        imageUrl: "https://images.unsplash.com/photo-1595708684082-a173bb3a06c5",
-        modelUrl: "models/AR-Code-1744457923.glb",
-        available: true
+        modelUrl: "models/AR-Code-1744457923.glb"
       },
       {
         id: 3,
         name: "Tartufo",
         description: "Truffle cream, mozzarella, mushrooms, truffle oil",
         price: 22.0,
-        imageUrl: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002",
-        modelUrl: "models/AR-Code-1744458351.glb",
-        available: true
+        modelUrl: "models/AR-Code-1744458351.glb"
       },
       {
         id: 4,
         name: "Diavola",
         description: "Tomato sauce, spicy salami, mozzarella, chili flakes",
         price: 16.0,
-        imageUrl: "https://images.unsplash.com/photo-1601924582970-9238bcb495d9",
-        modelUrl: "models/AR-Code-1744458931.glb",
-        available: true
+        modelUrl: "models/AR-Code-1744458931.glb"
       },
       {
         id: 5,
         name: "Quattro Formaggi",
         description: "Mozzarella, gorgonzola, parmesan, ricotta, arugula",
         price: 17.0,
-        imageUrl: "https://images.unsplash.com/photo-1594007654729-407eedc4fe0f",
-        modelUrl: "models/AR-Code-1744459414.glb",
-        available: true
+        modelUrl: "models/AR-Code-1744459414.glb"
       },
       {
         id: 6,
         name: "Vegetariana",
         description: "Tomato sauce, mozzarella, bell peppers, mushrooms, olives, artichokes",
         price: 15.0,
-        imageUrl: "https://images.unsplash.com/photo-1552539618-7eec9b753d85",
-        modelUrl: "models/AR-Code-1744462038 (1).glb",
-        available: true
+        modelUrl: "models/AR-Code-1744462038 (1).glb"
       }
     ];
     
@@ -257,6 +319,7 @@
     const arModal = document.getElementById('arModal');
     const closeModal = document.getElementById('closeModal');
     const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
     const modelViewer = document.getElementById('modelViewer');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const prevButton = document.getElementById('prevButton');
@@ -266,13 +329,13 @@
     // Cache for preloaded models
     const modelCache = {};
     
-    // Preload the first few models
+    // Preload models
     function preloadModels() {
       // Only preload the first 3 models to save bandwidth
       for (let i = 0; i < Math.min(3, menuItems.length); i++) {
-        const img = new Image();
-        img.src = menuItems[i].modelUrl;
-        modelCache[menuItems[i].id] = true;
+        fetch(menuItems[i].modelUrl, { method: 'HEAD' })
+          .then(() => { modelCache[menuItems[i].id] = true; })
+          .catch(err => console.error('Error preloading model:', err));
       }
     }
     
@@ -283,22 +346,21 @@
         slide.className = 'carousel-slide';
         
         slide.innerHTML = `
-          <div class="bg-white shadow-md rounded-lg overflow-hidden h-full flex flex-col">
-            <div class="h-48 overflow-hidden">
-              <img 
-                src="${item.imageUrl}" 
-                alt="${item.name}"
-                class="w-full h-full object-cover"
-              />
+          <div class="menu-card flex flex-col">
+            <div class="model-preview">
+              <div class="model-badge">3D</div>
+              <div class="circle-360 flex items-center justify-center w-16 h-16 bg-white rounded-full">
+                <span class="text-xl font-semibold">360°</span>
+              </div>
             </div>
-            <div class="p-4 flex-grow">
+            <div class="p-5 flex-grow">
               <h3 class="font-bold text-xl mb-2">${item.name}</h3>
-              <p class="text-gray-700 text-sm mb-3">${item.description}</p>
+              <p class="text-gray-600 text-sm mb-4">${item.description}</p>
               <div class="flex justify-between items-center">
-                <span class="font-semibold">$${item.price.toFixed(2)}</span>
+                <span class="font-semibold text-lg">$${item.price.toFixed(2)}</span>
                 <button
                   data-id="${item.id}"
-                  class="view-in-3d bg-black text-white px-4 py-2 rounded hover:bg-gray-800 text-sm"
+                  class="view-in-3d bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition btn"
                 >
                   View in 3D
                 </button>
@@ -315,8 +377,9 @@
     let emblaCarousel;
     function initCarousel() {
       emblaCarousel = new EmblaCarousel(document.querySelector('.carousel'), { 
-        loop: false,
-        align: 'start'
+        loop: true,
+        align: 'center',
+        dragFree: true
       });
       
       // Add click listeners to prev/next buttons
@@ -329,7 +392,8 @@
       const item = menuItems.find(item => item.id === itemId);
       if (!item) return;
       
-      modalTitle.textContent = `${item.name}`;
+      modalTitle.textContent = item.name;
+      modalDescription.textContent = item.description;
       
       // Show the modal with loading spinner visible and model hidden
       arModal.style.display = 'flex';
@@ -344,7 +408,7 @@
       // Clear all attributes
       const attributes = modelViewer.getAttributeNames();
       for (const attr of attributes) {
-        if (attr !== 'id' && !attr.startsWith('ar') && attr !== 'camera-controls' && attr !== 'auto-rotate') {
+        if (attr !== 'id' && !attr.startsWith('ar') && attr !== 'camera-controls' && attr !== 'auto-rotate' && attr !== 'rotation-per-second') {
           modelViewer.removeAttribute(attr);
         }
       }
@@ -391,8 +455,9 @@
       
       // Add listeners for View in 3D buttons
       document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('view-in-3d')) {
-          const itemId = parseInt(e.target.dataset.id);
+        const button = e.target.closest('.view-in-3d');
+        if (button) {
+          const itemId = parseInt(button.dataset.id);
           hideARModal(); // Ensure complete cleanup before opening new model
           setTimeout(() => {
             showARModal(itemId);
@@ -413,6 +478,13 @@
       // AR button click
       viewInARButton.addEventListener('click', () => {
         modelViewer.activateAR();
+      });
+      
+      // Handle escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && arModal.style.display === 'flex') {
+          hideARModal();
+        }
       });
     });
     
