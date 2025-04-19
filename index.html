@@ -84,6 +84,35 @@
       width: 100%;
       max-width: 32rem;
     }
+    
+    .loading-spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #000;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -25px;
+      margin-left: -25px;
+      z-index: 1;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .model-container {
+      position: relative;
+      height: 300px;
+    }
+    
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -131,7 +160,8 @@
         </button>
       </div>
       
-      <div>
+      <div class="model-container">
+        <div id="loadingSpinner" class="loading-spinner"></div>
         <!-- 3D Model Viewer with AR capabilities -->
         <model-viewer id="modelViewer"
           camera-controls
@@ -142,7 +172,7 @@
           shadow-intensity="1"
           environment-image="neutral"
           exposure="0.8"
-          loading="eager">
+          class="hidden">
         </model-viewer>
       </div>
       
@@ -228,9 +258,23 @@
     const closeModal = document.getElementById('closeModal');
     const modalTitle = document.getElementById('modalTitle');
     const modelViewer = document.getElementById('modelViewer');
+    const loadingSpinner = document.getElementById('loadingSpinner');
     const prevButton = document.getElementById('prevButton');
     const nextButton = document.getElementById('nextButton');
     const viewInARButton = document.getElementById('viewInAR');
+    
+    // Cache for preloaded models
+    const modelCache = {};
+    
+    // Preload the first few models
+    function preloadModels() {
+      // Only preload the first 3 models to save bandwidth
+      for (let i = 0; i < Math.min(3, menuItems.length); i++) {
+        const img = new Image();
+        img.src = menuItems[i].modelUrl;
+        modelCache[menuItems[i].id] = true;
+      }
+    }
     
     // Render menu items
     function renderMenuItems() {
@@ -287,33 +331,72 @@
       
       modalTitle.textContent = `${item.name}`;
       
+      // Show the modal with loading spinner visible and model hidden
+      arModal.style.display = 'flex';
+      loadingSpinner.classList.remove('hidden');
+      modelViewer.classList.add('hidden');
+      
+      // Reset the modelViewer completely
+      while (modelViewer.firstChild) {
+        modelViewer.removeChild(modelViewer.firstChild);
+      }
+      
+      // Clear all attributes
+      const attributes = modelViewer.getAttributeNames();
+      for (const attr of attributes) {
+        if (attr !== 'id' && !attr.startsWith('ar') && attr !== 'camera-controls' && attr !== 'auto-rotate') {
+          modelViewer.removeAttribute(attr);
+        }
+      }
+      
       // Set the model source
       modelViewer.setAttribute('src', item.modelUrl);
       
       // Add alt text
       modelViewer.setAttribute('alt', `3D model of ${item.name}`);
       
-      // Show the modal
-      arModal.style.display = 'flex';
+      // When the model is loaded, hide spinner and show model
+      modelViewer.addEventListener('load', function modelLoaded() {
+        loadingSpinner.classList.add('hidden');
+        modelViewer.classList.remove('hidden');
+        modelViewer.removeEventListener('load', modelLoaded);
+      });
+      
+      // If loading takes too long, show model anyway after a timeout
+      setTimeout(() => {
+        loadingSpinner.classList.add('hidden');
+        modelViewer.classList.remove('hidden');
+      }, 5000);
     }
     
     // Close modal
     function hideARModal() {
       arModal.style.display = 'none';
-      // Clear the model source to stop loading
-      modelViewer.removeAttribute('src');
+      
+      // Complete cleanup of the model-viewer
+      modelViewer.setAttribute('src', '');
+      modelViewer.classList.add('hidden');
+      
+      // Force browser to release resources
+      setTimeout(() => {
+        modelViewer.innerHTML = '';
+      }, 100);
     }
     
     // Add event listeners
     document.addEventListener('DOMContentLoaded', () => {
       renderMenuItems();
       initCarousel();
+      preloadModels();
       
       // Add listeners for View in 3D buttons
       document.addEventListener('click', (e) => {
         if (e.target.classList.contains('view-in-3d')) {
           const itemId = parseInt(e.target.dataset.id);
-          showARModal(itemId);
+          hideARModal(); // Ensure complete cleanup before opening new model
+          setTimeout(() => {
+            showARModal(itemId);
+          }, 100);
         }
       });
       
