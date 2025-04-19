@@ -33,6 +33,7 @@
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       margin: 20px 0;
+      background-color: #f5f5f5;
     }
     
     .ar-button {
@@ -88,6 +89,11 @@
       transition: all 0.2s ease;
     }
     
+    .nav-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
     .nav-button:active {
       transform: scale(0.98);
     }
@@ -122,6 +128,24 @@
       max-width: 500px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
+    
+    .ar-instructions {
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    
+    .ar-instructions ol {
+      list-style-type: decimal;
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+    
+    .ar-instructions li {
+      margin-bottom: 6px;
+    }
   </style>
 </head>
 <body>
@@ -150,11 +174,23 @@
             auto-rotate
             shadow-intensity="1.2"
             exposure="1.1"
+            alt="3D model of Margherita Pizza"
           >
             <button slot="ar-button" class="ar-button">
               VIEW IN YOUR SPACE
             </button>
           </model-viewer>
+        </div>
+        
+        <div class="ar-instructions">
+          <p class="font-medium">How to view in AR:</p>
+          <ol>
+            <li>Tap "VIEW IN YOUR SPACE" button</li>
+            <li>Point your camera at a flat surface</li>
+            <li>Move your device slowly to detect the surface</li>
+            <li>The 3D model will appear on the detected surface</li>
+            <li>Pinch to resize or drag to reposition the model</li>
+          </ol>
         </div>
         
         <div class="nav-buttons">
@@ -224,7 +260,25 @@
     // Update the displayed model
     function updateModel() {
       const food = menuItems[currentIndex];
-      modelViewer.src = food.model;
+      
+      // First reset the model-viewer
+      modelViewer.removeAttribute('src');
+      modelViewer.loading = 'eager';
+      
+      // Set the new model after a small delay to ensure reset
+      setTimeout(() => {
+        modelViewer.src = food.model;
+        modelViewer.setAttribute('alt', `3D model of ${food.title}`);
+        
+        // Force reload the model
+        if (modelViewer.model) {
+          modelViewer.model.visible = false;
+          setTimeout(() => {
+            modelViewer.model.visible = true;
+          }, 100);
+        }
+      }, 50);
+      
       foodTitle.textContent = food.title;
       foodDesc.textContent = food.description;
       counter.textContent = `${currentIndex + 1}/${menuItems.length}`;
@@ -255,6 +309,11 @@
       
       // Set the restaurant logo
       document.getElementById('logo').src = 'logo-1-removebg-preview.png';
+      
+      // Ensure model-viewer is properly initialized
+      customElements.whenDefined('model-viewer').then(() => {
+        console.log('model-viewer is defined');
+      });
     });
   </script>
 </body>
