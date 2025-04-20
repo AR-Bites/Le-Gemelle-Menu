@@ -81,10 +81,10 @@
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
     
-    /* AR Button Styling from Oak Cafe */
+    /* AR Button Styling - Black version */
     .ar-button {
-      background: linear-gradient(135deg, #D4AF37 0%, #E8C547 100%) !important;
-      color: #1A3A2F !important;
+      background: black !important;
+      color: white !important;
       position: absolute;
       bottom: 12px;
       left: 50%;
@@ -139,6 +139,54 @@
       background: #f9fafb;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
+    
+    /* AR Instructions Modal */
+    .ar-instructions {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .ar-instructions-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 500px;
+      text-align: center;
+    }
+    
+    .ar-instructions h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    
+    .ar-instructions ol {
+      text-align: left;
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    
+    .ar-instructions li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .ar-instructions button {
+      background: black;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -173,6 +221,20 @@
       </div>
     </div>
   </main>
+
+  <!-- AR Instructions Modal -->
+  <div class="ar-instructions" id="arInstructions">
+    <div class="ar-instructions-content">
+      <h3>How to view in your space</h3>
+      <ol>
+        <li>Point your camera at a flat surface like a table or floor</li>
+        <li>Move your device slowly to help detect the surface</li>
+        <li>Tap to place the 3D model in your environment</li>
+        <li>Pinch to resize or rotate the model as needed</li>
+      </ol>
+      <button id="startAR">Got it, start AR</button>
+    </div>
+  </div>
 
   <script>
     // Menu data with 3D model links
@@ -219,6 +281,11 @@
     const menuCarousel = document.getElementById('menuCarousel');
     const prevButton = document.getElementById('prevButton');
     const nextButton = document.getElementById('nextButton');
+    const arInstructions = document.getElementById('arInstructions');
+    const startARButton = document.getElementById('startAR');
+    
+    // Track which model viewer is currently active for AR
+    let activeModelViewer = null;
     
     // Initialize carousel
     let emblaCarousel;
@@ -232,6 +299,7 @@
         slide.innerHTML = `
           <div class="menu-card">
             <model-viewer
+              id="model-${item.id}"
               src="${item.modelUrl}"
               alt="3D model of ${item.name}"
               ar
@@ -241,6 +309,8 @@
               shadow-intensity="1"
               exposure="0.8"
               environment-image="neutral"
+              camera-orbit="90deg 75deg 105%"
+              camera-target="0m 0m 0m"
             >
               <button slot="ar-button" class="ar-button">VIEW IN YOUR SPACE</button>
               <div class="cursor-hint">
@@ -256,6 +326,24 @@
         `;
         
         menuCarousel.appendChild(slide);
+        
+        // Add event listener for AR button
+        const modelViewer = document.getElementById(`model-${item.id}`);
+        if (modelViewer) {
+          modelViewer.addEventListener('ar-status', (event) => {
+            if (event.detail.status === 'not-presenting') {
+              arInstructions.style.display = 'none';
+            }
+          });
+          
+          const arButton = modelViewer.querySelector('[slot="ar-button"]');
+          if (arButton) {
+            arButton.addEventListener('click', () => {
+              activeModelViewer = modelViewer;
+              arInstructions.style.display = 'flex';
+            });
+          }
+        }
       });
     }
     
@@ -275,6 +363,14 @@
     document.addEventListener('DOMContentLoaded', () => {
       renderMenuItems();
       initCarousel();
+      
+      // Start AR after instructions
+      startARButton.addEventListener('click', () => {
+        arInstructions.style.display = 'none';
+        if (activeModelViewer) {
+          activeModelViewer.activateAR();
+        }
+      });
     });
     
     // Set the restaurant logo
