@@ -241,6 +241,23 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
+    /* Optimized poster styling */
+    .model-poster {
+      width: 100%;
+      height: 300px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+    }
+    
+    .model-poster img {
+      max-width: 60%;
+      max-height: 60%;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
@@ -301,37 +318,43 @@
         id: 1,
         name: "Margherita",
         description: "San Marzano tomato sauce, fresh mozzarella, basil, olive oil",
-        modelUrl: "models/AR-Code-1744457119.glb"
+        modelUrl: "models/AR-Code-1744457119.glb",
+        posterUrl: "posters/margherita.jpg" // Add poster images for each item
       },
       {
         id: 2,
         name: "Prosciutto",
         description: "Tomato sauce, mozzarella, prosciutto di Parma, arugula, parmesan",
-        modelUrl: "models/AR-Code-1744457923.glb"
+        modelUrl: "models/AR-Code-1744457923.glb",
+        posterUrl: "posters/prosciutto.jpg"
       },
       {
         id: 3,
         name: "Tartufo",
         description: "Truffle cream, mozzarella, mushrooms, truffle oil",
-        modelUrl: "models/AR-Code-1744458351.glb"
+        modelUrl: "models/AR-Code-1744458351.glb",
+        posterUrl: "posters/tartufo.jpg"
       },
       {
         id: 4,
         name: "Diavola",
         description: "Tomato sauce, spicy salami, mozzarella, chili flakes",
-        modelUrl: "models/AR-Code-1744458931.glb"
+        modelUrl: "models/AR-Code-1744458931.glb",
+        posterUrl: "posters/diavola.jpg"
       },
       {
         id: 5,
         name: "Quattro Formaggi",
         description: "Mozzarella, gorgonzola, parmesan, ricotta, arugula",
-        modelUrl: "models/AR-Code-1744459414.glb"
+        modelUrl: "models/AR-Code-1744459414.glb",
+        posterUrl: "posters/quattro-formaggi.jpg"
       },
       {
         id: 6,
         name: "Vegetariana",
         description: "Tomato sauce, mozzarella, bell peppers, mushrooms, olives, artichokes",
-        modelUrl: "models/AR-Code-1744462038 (1).glb"
+        modelUrl: "models/AR-Code-1744462038 (1).glb",
+        posterUrl: "posters/vegetariana.jpg"
       }
     ];
     
@@ -349,26 +372,55 @@
     let emblaCarousel;
     let modelsLoaded = 0;
 
-    // Preload all 3D models immediately
+    // Optimized camera angles for each model (higher view)
+    const cameraSettings = {
+      orbit: "60deg 75deg 120%", // Higher angle (60deg instead of 45deg)
+      target: "0m 0m 0m",
+      fov: "25deg" // Narrower field of view for better framing
+    };
+
+    // Preload all 3D models with optimized loading strategy
     function preloadModels() {
-      menuItems.forEach(item => {
-        const model = document.createElement('model-viewer');
-        model.src = item.modelUrl;
-        model.style.display = 'none';
-        model.setAttribute('preload', '');
-        model.addEventListener('load', () => {
-          modelsLoaded++;
-          console.log(`Model ${item.name} loaded (${modelsLoaded}/${menuItems.length})`);
-        });
-        preloadContainer.appendChild(model);
-      });
+      // First load only the first 2 models immediately
+      const initialModels = menuItems.slice(0, 2);
+      initialModels.forEach(item => loadModel(item));
+      
+      // Then load the rest after a short delay
+      setTimeout(() => {
+        const remainingModels = menuItems.slice(2);
+        remainingModels.forEach(item => loadModel(item));
+      }, 500);
     }
 
-    // Render menu items with optimized camera angle
+    function loadModel(item) {
+      const model = document.createElement('model-viewer');
+      model.src = item.modelUrl;
+      model.style.display = 'none';
+      model.setAttribute('preload', '');
+      model.setAttribute('loading', 'eager'); // Force eager loading
+      
+      model.addEventListener('load', () => {
+        modelsLoaded++;
+        console.log(`Model ${item.name} loaded (${modelsLoaded}/${menuItems.length})`);
+        // Update progress if needed
+      });
+      
+      model.addEventListener('error', () => {
+        console.error(`Failed to load model ${item.name}`);
+        modelsLoaded++; // Count as loaded to prevent blocking
+      });
+      
+      preloadContainer.appendChild(model);
+    }
+
+    // Render menu items with optimized camera angle and lazy loading
     function renderMenuItems() {
-      menuItems.forEach(item => {
+      menuItems.forEach((item, index) => {
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
+        
+        // Use lazy loading for models not in initial view
+        const loadingMode = index < 2 ? 'eager' : 'lazy';
         
         slide.innerHTML = `
           <div class="menu-card">
@@ -383,12 +435,16 @@
               shadow-intensity="1"
               exposure="0.8"
               environment-image="neutral"
-              camera-orbit="45deg 75deg 105%"
-              camera-target="0m 0m 0m"
-              field-of-view="30deg"
+              camera-orbit="${cameraSettings.orbit}"
+              camera-target="${cameraSettings.target}"
+              field-of-view="${cameraSettings.fov}"
               interaction-prompt="none"
-              preload
+              loading="${loadingMode}"
+              poster="${item.posterUrl}"
             >
+              <div slot="poster" class="model-poster">
+                <img src="${item.posterUrl}" alt="${item.name}">
+              </div>
               <button slot="ar-button" class="ar-button">
                 <span class="loading-spinner" id="spinner-${item.id}" style="display:none;"></span>
                 <span id="button-text-${item.id}">VIEW IN YOUR SPACE</span>
@@ -447,6 +503,20 @@
       // Add click listeners to prev/next buttons
       prevButton.addEventListener('click', () => emblaCarousel.scrollPrev());
       nextButton.addEventListener('click', () => emblaCarousel.scrollNext());
+      
+      // Lazy load models when they come into view
+      emblaCarousel.on('select', () => {
+        const slidesInView = emblaCarousel.slidesInView();
+        slidesInView.forEach(index => {
+          const item = menuItems[index];
+          if (item) {
+            const modelViewer = document.getElementById(`model-${item.id}`);
+            if (modelViewer && !modelViewer.loaded) {
+              modelViewer.load(); // Force load if not already loaded
+            }
+          }
+        });
+      });
     }
     
     // Add event listeners
