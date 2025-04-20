@@ -22,6 +22,7 @@
       font-family: 'Poppins', sans-serif;
       background-color: #ffffff;
       color: #333;
+      overflow-x: hidden;
     }
     
     h1, h2, h3, h4 {
@@ -43,6 +44,7 @@
       min-width: 100%;
       padding: 0 10px;
       position: relative;
+      flex: 0 0 auto;
     }
     
     @media (min-width: 768px) {
@@ -63,6 +65,7 @@
       --poster-color: transparent;
       border-radius: 0.5rem;
       margin-bottom: 1rem;
+      background-color: #f8f8f8;
     }
     
     .menu-card {
@@ -96,6 +99,9 @@
       width: calc(100% - 24px);
       max-width: 220px;
       border-radius: 25px !important;
+      border: none;
+      cursor: pointer;
+      z-index: 10;
     }
     
     @keyframes pulse {
@@ -117,6 +123,7 @@
       border-radius: 20px;
       font-size: 0.8rem;
       opacity: 0.8;
+      z-index: 10;
     }
     
     .cursor-hint svg {
@@ -133,6 +140,8 @@
       background: white;
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
       transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
     }
     
     .nav-button:hover {
@@ -208,7 +217,47 @@
       cursor: pointer;
     }
     
+    /* Loading state */
+    .loading-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: black;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    /* Optimized model viewer settings */
+    .model-container {
+      position: relative;
+      height: 300px;
+      background: #f8f8f8;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    
+    /* Mobile optimizations */
     @media (max-width: 480px) {
+      .carousel-slide {
+        padding: 0 8px;
+      }
+      
+      model-viewer {
+        height: 250px;
+      }
+      
+      .model-container {
+        height: 250px;
+      }
+      
       .ar-instructions-content {
         padding: 1rem;
       }
@@ -220,13 +269,33 @@
       .ar-instructions li {
         font-size: 0.9rem;
       }
+      
+      .menu-card {
+        padding: 0.8rem;
+      }
+      
+      .ar-button {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+      }
+      
+      .cursor-hint {
+        font-size: 0.7rem;
+        bottom: 50px;
+      }
+    }
+    
+    /* Performance optimizations */
+    model-viewer {
+      --progress-bar-color: transparent;
+      --progress-mask: transparent;
     }
   </style>
 </head>
 <body>
-  <header class="w-full bg-white py-6 border-b border-gray-100">
+  <header class="w-full bg-white py-6 border-b border-gray-100 sticky top-0 z-50">
     <div class="container mx-auto flex justify-center items-center p-2">
-      <img id="logo" src="logo-1-removebg-preview.png" alt="Restaurant Logo" class="h-16 md:h-20">
+      <img id="logo" src="logo-1-removebg-preview.png" alt="Restaurant Logo" class="h-16 md:h-20" loading="lazy">
     </div>
   </header>
   
@@ -241,12 +310,12 @@
         </div>
         
         <div class="flex justify-center mt-8 gap-4">
-          <button id="prevButton" class="nav-button">
+          <button id="prevButton" class="nav-button" aria-label="Previous item">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <button id="nextButton" class="nav-button">
+          <button id="nextButton" class="nav-button" aria-label="Next item">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -259,7 +328,7 @@
   <!-- AR Instructions Modal - Improved Mobile Design -->
   <div class="ar-instructions" id="arInstructions">
     <div class="ar-instructions-content">
-      <button class="close-instructions" id="closeInstructions">×</button>
+      <button class="close-instructions" id="closeInstructions" aria-label="Close instructions">×</button>
       <h3>How to view in your space</h3>
       <ol>
         <li>Point your camera at a flat surface like a table</li>
@@ -278,37 +347,43 @@
         id: 1,
         name: "Margherita",
         description: "San Marzano tomato sauce, fresh mozzarella, basil, olive oil",
-        modelUrl: "models/AR-Code-1744457119.glb"
+        modelUrl: "models/AR-Code-1744457119.glb",
+        posterUrl: "posters/margherita.jpg" // Add poster images for faster loading
       },
       {
         id: 2,
         name: "Prosciutto",
         description: "Tomato sauce, mozzarella, prosciutto di Parma, arugula, parmesan",
-        modelUrl: "models/AR-Code-1744457923.glb"
+        modelUrl: "models/AR-Code-1744457923.glb",
+        posterUrl: "posters/prosciutto.jpg"
       },
       {
         id: 3,
         name: "Tartufo",
         description: "Truffle cream, mozzarella, mushrooms, truffle oil",
-        modelUrl: "models/AR-Code-1744458351.glb"
+        modelUrl: "models/AR-Code-1744458351.glb",
+        posterUrl: "posters/tartufo.jpg"
       },
       {
         id: 4,
         name: "Diavola",
         description: "Tomato sauce, spicy salami, mozzarella, chili flakes",
-        modelUrl: "models/AR-Code-1744458931.glb"
+        modelUrl: "models/AR-Code-1744458931.glb",
+        posterUrl: "posters/diavola.jpg"
       },
       {
         id: 5,
         name: "Quattro Formaggi",
         description: "Mozzarella, gorgonzola, parmesan, ricotta, arugula",
-        modelUrl: "models/AR-Code-1744459414.glb"
+        modelUrl: "models/AR-Code-1744459414.glb",
+        posterUrl: "posters/quattro-formaggi.jpg"
       },
       {
         id: 6,
         name: "Vegetariana",
         description: "Tomato sauce, mozzarella, bell peppers, mushrooms, olives, artichokes",
-        modelUrl: "models/AR-Code-1744462038 (1).glb"
+        modelUrl: "models/AR-Code-1744462038 (1).glb",
+        posterUrl: "posters/vegetariana.jpg"
       }
     ];
     
@@ -322,11 +397,21 @@
     
     // Track which model viewer is currently active for AR
     let activeModelViewer = null;
+    let emblaCarousel = null;
     
-    // Initialize carousel
-    let emblaCarousel;
+    // Preload models for faster switching
+    function preloadModels() {
+      menuItems.forEach(item => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'fetch';
+        link.href = item.modelUrl;
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+      });
+    }
     
-    // Render menu items with top-down view
+    // Render menu items with consistent top-down view
     function renderMenuItems() {
       menuItems.forEach(item => {
         const slide = document.createElement('div');
@@ -334,29 +419,37 @@
         
         slide.innerHTML = `
           <div class="menu-card">
-            <model-viewer
-              id="model-${item.id}"
-              src="${item.modelUrl}"
-              alt="3D model of ${item.name}"
-              ar
-              ar-modes="webxr scene-viewer quick-look"
-              camera-controls
-              auto-rotate
-              shadow-intensity="1"
-              exposure="0.8"
-              environment-image="neutral"
-              camera-orbit="90deg 75deg 105%"
-              camera-target="0m 0m 0m"
-              field-of-view="30deg"
-            >
-              <button slot="ar-button" class="ar-button">VIEW IN YOUR SPACE</button>
-              <div class="cursor-hint">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
-                </svg>
-                Drag to rotate
-              </div>
-            </model-viewer>
+            <div class="model-container">
+              <div class="loading-spinner"></div>
+              <model-viewer
+                id="model-${item.id}"
+                src="${item.modelUrl}"
+                ${item.posterUrl ? `poster="${item.posterUrl}"` : ''}
+                alt="3D model of ${item.name}"
+                ar
+                ar-modes="webxr scene-viewer quick-look"
+                camera-controls
+                auto-rotate
+                shadow-intensity="1"
+                exposure="0.8"
+                environment-image="neutral"
+                camera-orbit="90deg 75deg 105%"
+                camera-target="0m 0m 0m"
+                field-of-view="30deg"
+                interaction-prompt="none"
+                loading="eager"
+                reveal="auto"
+                touch-action="pan-y"
+              >
+                <button slot="ar-button" class="ar-button">VIEW IN YOUR SPACE</button>
+                <div class="cursor-hint">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
+                  </svg>
+                  Drag to rotate
+                </div>
+              </model-viewer>
+            </div>
             <h2 class="font-bold text-xl mb-2">${item.name}</h2>
             <p class="text-gray-600">${item.description}</p>
           </div>
@@ -364,9 +457,26 @@
         
         menuCarousel.appendChild(slide);
         
-        // Add event listener for AR button
+        // Add event listener for AR button after model viewer is loaded
         const modelViewer = document.getElementById(`model-${item.id}`);
         if (modelViewer) {
+          modelViewer.addEventListener('load', () => {
+            // Hide loading spinner when model is loaded
+            const spinner = modelViewer.parentElement.querySelector('.loading-spinner');
+            if (spinner) spinner.style.display = 'none';
+            
+            // Set consistent top-down view
+            modelViewer.cameraOrbit = '90deg 75deg 105%';
+            modelViewer.cameraTarget = '0m 0m 0m';
+            modelViewer.fieldOfView = '30deg';
+          });
+          
+          modelViewer.addEventListener('error', () => {
+            // Hide loading spinner if there's an error
+            const spinner = modelViewer.parentElement.querySelector('.loading-spinner');
+            if (spinner) spinner.style.display = 'none';
+          });
+          
           modelViewer.addEventListener('ar-status', (event) => {
             if (event.detail.status === 'not-presenting') {
               arInstructions.style.display = 'none';
@@ -388,16 +498,29 @@
       emblaCarousel = new EmblaCarousel(document.querySelector('.carousel'), { 
         loop: true,
         align: 'center',
-        dragFree: true
+        dragFree: true,
+        skipSnaps: true
       });
       
       // Add click listeners to prev/next buttons
       prevButton.addEventListener('click', () => emblaCarousel.scrollPrev());
       nextButton.addEventListener('click', () => emblaCarousel.scrollNext());
+      
+      // Lazy load models when they come into view
+      emblaCarousel.on('select', () => {
+        const selectedSlide = emblaCarousel.slidesInView()[0];
+        if (selectedSlide) {
+          const modelViewer = selectedSlide.querySelector('model-viewer');
+          if (modelViewer && !modelViewer.loaded) {
+            modelViewer.load();
+          }
+        }
+      });
     }
     
     // Add event listeners
     document.addEventListener('DOMContentLoaded', () => {
+      preloadModels();
       renderMenuItems();
       initCarousel();
       
@@ -420,10 +543,25 @@
           arInstructions.style.display = 'none';
         }
       });
+      
+      // Set the restaurant logo with lazy loading
+      const logo = document.getElementById('logo');
+      if (logo) {
+        logo.loading = 'lazy';
+      }
     });
     
-    // Set the restaurant logo
-    document.getElementById('logo').src = 'logo-1-removebg-preview.png';
+    // Optimize performance when tab is not visible
+    document.addEventListener('visibilitychange', () => {
+      const modelViewers = document.querySelectorAll('model-viewer');
+      modelViewers.forEach(viewer => {
+        if (document.hidden) {
+          viewer.pause();
+        } else {
+          viewer.play();
+        }
+      });
+    });
   </script>
 </body>
 </html>
