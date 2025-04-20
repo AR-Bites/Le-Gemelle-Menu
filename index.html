@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AR Restaurant Menu</title>
   
+  <!-- Preconnect to CDNs for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://unpkg.com">
+  
   <!-- Include Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
@@ -137,7 +142,7 @@
     
     .nav-button:hover {
       background: #f9fafb;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
     }
     
     /* AR Instructions Modal - Mobile Friendly */
@@ -221,6 +226,21 @@
         font-size: 0.9rem;
       }
     }
+    
+    /* Loading indicator */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -256,7 +276,7 @@
     </div>
   </main>
 
-  <!-- AR Instructions Modal - Improved Mobile Design -->
+  <!-- AR Instructions Modal -->
   <div class="ar-instructions" id="arInstructions">
     <div class="ar-instructions-content">
       <button class="close-instructions" id="closeInstructions">×</button>
@@ -270,6 +290,9 @@
       <button id="startAR">Start AR Experience</button>
     </div>
   </div>
+
+  <!-- Hidden preload container -->
+  <div id="preloadContainer" style="display: none;"></div>
 
   <script>
     // Menu data with 3D model links
@@ -319,14 +342,29 @@
     const arInstructions = document.getElementById('arInstructions');
     const startARButton = document.getElementById('startAR');
     const closeInstructions = document.getElementById('closeInstructions');
+    const preloadContainer = document.getElementById('preloadContainer');
     
     // Track which model viewer is currently active for AR
     let activeModelViewer = null;
-    
-    // Initialize carousel
     let emblaCarousel;
-    
-    // Render menu items with top-down view
+    let modelsLoaded = 0;
+
+    // Preload all 3D models immediately
+    function preloadModels() {
+      menuItems.forEach(item => {
+        const model = document.createElement('model-viewer');
+        model.src = item.modelUrl;
+        model.style.display = 'none';
+        model.setAttribute('preload', '');
+        model.addEventListener('load', () => {
+          modelsLoaded++;
+          console.log(`Model ${item.name} loaded (${modelsLoaded}/${menuItems.length})`);
+        });
+        preloadContainer.appendChild(model);
+      });
+    }
+
+    // Render menu items with optimized camera angle
     function renderMenuItems() {
       menuItems.forEach(item => {
         const slide = document.createElement('div');
@@ -345,11 +383,16 @@
               shadow-intensity="1"
               exposure="0.8"
               environment-image="neutral"
-              camera-orbit="0deg 90deg 105%"
+              camera-orbit="45deg 75deg 105%"
               camera-target="0m 0m 0m"
               field-of-view="30deg"
+              interaction-prompt="none"
+              preload
             >
-              <button slot="ar-button" class="ar-button">VIEW IN YOUR SPACE</button>
+              <button slot="ar-button" class="ar-button">
+                <span class="loading-spinner" id="spinner-${item.id}" style="display:none;"></span>
+                <span id="button-text-${item.id}">VIEW IN YOUR SPACE</span>
+              </button>
               <div class="cursor-hint">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                   <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
@@ -376,8 +419,18 @@
           const arButton = modelViewer.querySelector('[slot="ar-button"]');
           if (arButton) {
             arButton.addEventListener('click', () => {
-              activeModelViewer = modelViewer;
-              arInstructions.style.display = 'flex';
+              const spinner = document.getElementById(`spinner-${item.id}`);
+              const buttonText = document.getElementById(`button-text-${item.id}`);
+              
+              spinner.style.display = 'inline-block';
+              buttonText.style.display = 'none';
+              
+              setTimeout(() => {
+                spinner.style.display = 'none';
+                buttonText.style.display = 'inline';
+                activeModelViewer = modelViewer;
+                arInstructions.style.display = 'flex';
+              }, 300);
             });
           }
         }
@@ -398,6 +451,10 @@
     
     // Add event listeners
     document.addEventListener('DOMContentLoaded', () => {
+      // Start preloading immediately
+      preloadModels();
+      
+      // Render the menu items
       renderMenuItems();
       initCarousel();
       
