@@ -140,7 +140,7 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     
-    /* AR Instructions Modal */
+    /* AR Instructions Modal - Mobile Friendly */
     .ar-instructions {
       display: none;
       position: fixed;
@@ -158,15 +158,29 @@
     .ar-instructions-content {
       background: white;
       border-radius: 1rem;
-      padding: 2rem;
-      max-width: 500px;
+      padding: 1.5rem;
+      max-width: 90%;
+      width: 400px;
       text-align: center;
+      position: relative;
+    }
+    
+    .close-instructions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666;
     }
     
     .ar-instructions h3 {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       margin-bottom: 1rem;
       font-weight: bold;
+      color: #333;
     }
     
     .ar-instructions ol {
@@ -176,16 +190,36 @@
     }
     
     .ar-instructions li {
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.95rem;
+      color: #555;
     }
     
     .ar-instructions button {
       background: black;
       color: white;
-      padding: 0.75rem 1.5rem;
+      padding: 0.8rem 1.5rem;
       border-radius: 2rem;
       font-weight: 600;
       margin-top: 1rem;
+      width: 100%;
+      max-width: 200px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 480px) {
+      .ar-instructions-content {
+        padding: 1rem;
+      }
+      
+      .ar-instructions h3 {
+        font-size: 1.2rem;
+      }
+      
+      .ar-instructions li {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
@@ -222,17 +256,18 @@
     </div>
   </main>
 
-  <!-- AR Instructions Modal -->
+  <!-- AR Instructions Modal - Improved Mobile Design -->
   <div class="ar-instructions" id="arInstructions">
     <div class="ar-instructions-content">
+      <button class="close-instructions" id="closeInstructions">×</button>
       <h3>How to view in your space</h3>
       <ol>
-        <li>Point your camera at a flat surface like a table or floor</li>
-        <li>Move your device slowly to help detect the surface</li>
-        <li>Tap to place the 3D model in your environment</li>
-        <li>Pinch to resize or rotate the model as needed</li>
+        <li>Point your camera at a flat surface like a table</li>
+        <li>Move your device slowly to detect the surface</li>
+        <li>Tap to place the 3D model in your space</li>
+        <li>Pinch to resize or rotate as needed</li>
       </ol>
-      <button id="startAR">Got it, start AR</button>
+      <button id="startAR">Start AR Experience</button>
     </div>
   </div>
 
@@ -283,6 +318,7 @@
     const nextButton = document.getElementById('nextButton');
     const arInstructions = document.getElementById('arInstructions');
     const startARButton = document.getElementById('startAR');
+    const closeInstructions = document.getElementById('closeInstructions');
     
     // Track which model viewer is currently active for AR
     let activeModelViewer = null;
@@ -290,7 +326,7 @@
     // Initialize carousel
     let emblaCarousel;
     
-    // Render menu items
+    // Render menu items with top-down view
     function renderMenuItems() {
       menuItems.forEach(item => {
         const slide = document.createElement('div');
@@ -311,6 +347,7 @@
               environment-image="neutral"
               camera-orbit="90deg 75deg 105%"
               camera-target="0m 0m 0m"
+              field-of-view="30deg"
             >
               <button slot="ar-button" class="ar-button">VIEW IN YOUR SPACE</button>
               <div class="cursor-hint">
@@ -369,6 +406,18 @@
         arInstructions.style.display = 'none';
         if (activeModelViewer) {
           activeModelViewer.activateAR();
+        }
+      });
+      
+      // Close instructions
+      closeInstructions.addEventListener('click', () => {
+        arInstructions.style.display = 'none';
+      });
+      
+      // Close when clicking outside content
+      arInstructions.addEventListener('click', (e) => {
+        if (e.target === arInstructions) {
+          arInstructions.style.display = 'none';
         }
       });
     });
