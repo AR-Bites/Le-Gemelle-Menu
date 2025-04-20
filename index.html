@@ -68,6 +68,7 @@
       --poster-color: transparent;
       border-radius: 0.5rem;
       margin-bottom: 1rem;
+      perspective: 1200px;
     }
     
     .menu-card {
@@ -319,7 +320,7 @@
         name: "Margherita",
         description: "San Marzano tomato sauce, fresh mozzarella, basil, olive oil",
         modelUrl: "models/AR-Code-1744457119.glb",
-        posterUrl: "posters/margherita.jpg" // Add poster images for each item
+        posterUrl: "posters/margherita.jpg"
       },
       {
         id: 2,
@@ -372,23 +373,28 @@
     let emblaCarousel;
     let modelsLoaded = 0;
 
-    // Optimized camera angles for each model (higher view)
+    // Extreme high-angle camera settings (almost top-down view)
     const cameraSettings = {
-      orbit: "60deg 75deg 120%", // Higher angle (60deg instead of 45deg)
-      target: "0m 0m 0m",
-      fov: "25deg" // Narrower field of view for better framing
+      orbit: "85deg 75deg 180%",  // Very high angle (85deg) with significant zoom (180%)
+      target: "0m 0.75m 0m",      // Raised target to compensate for extreme angle
+      fov: "15deg",               // Very narrow field of view
+      autoRotateDelay: 4000,       // Longer delay before auto-rotate
+      shadowIntensity: 1.5,        // Stronger shadows for depth
+      exposure: 1.1               // Slightly brighter exposure
     };
 
     // Preload all 3D models with optimized loading strategy
     function preloadModels() {
-      // First load only the first 2 models immediately
-      const initialModels = menuItems.slice(0, 2);
-      initialModels.forEach(item => loadModel(item));
+      // First load only the first model immediately
+      loadModel(menuItems[0]);
       
       // Then load the rest after a short delay
       setTimeout(() => {
-        const remainingModels = menuItems.slice(2);
-        remainingModels.forEach(item => loadModel(item));
+        const remainingModels = menuItems.slice(1);
+        remainingModels.forEach((item, index) => {
+          // Stagger loading with increasing delays
+          setTimeout(() => loadModel(item), index * 300);
+        });
       }, 500);
     }
 
@@ -397,30 +403,29 @@
       model.src = item.modelUrl;
       model.style.display = 'none';
       model.setAttribute('preload', '');
-      model.setAttribute('loading', 'eager'); // Force eager loading
+      model.setAttribute('loading', 'eager');
       
       model.addEventListener('load', () => {
         modelsLoaded++;
         console.log(`Model ${item.name} loaded (${modelsLoaded}/${menuItems.length})`);
-        // Update progress if needed
       });
       
       model.addEventListener('error', () => {
         console.error(`Failed to load model ${item.name}`);
-        modelsLoaded++; // Count as loaded to prevent blocking
+        modelsLoaded++;
       });
       
       preloadContainer.appendChild(model);
     }
 
-    // Render menu items with optimized camera angle and lazy loading
+    // Render menu items with extreme high camera angle
     function renderMenuItems() {
       menuItems.forEach((item, index) => {
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
         
         // Use lazy loading for models not in initial view
-        const loadingMode = index < 2 ? 'eager' : 'lazy';
+        const loadingMode = index < 1 ? 'eager' : 'lazy';
         
         slide.innerHTML = `
           <div class="menu-card">
@@ -432,8 +437,9 @@
               ar-modes="webxr scene-viewer quick-look"
               camera-controls
               auto-rotate
-              shadow-intensity="1"
-              exposure="0.8"
+              auto-rotate-delay="${cameraSettings.autoRotateDelay}"
+              shadow-intensity="${cameraSettings.shadowIntensity}"
+              exposure="${cameraSettings.exposure}"
               environment-image="neutral"
               camera-orbit="${cameraSettings.orbit}"
               camera-target="${cameraSettings.target}"
@@ -441,9 +447,12 @@
               interaction-prompt="none"
               loading="${loadingMode}"
               poster="${item.posterUrl}"
+              interpolation-decay="200"
+              bounds="tight"
+              reveal="manual"
             >
               <div slot="poster" class="model-poster">
-                <img src="${item.posterUrl}" alt="${item.name}">
+                <img src="${item.posterUrl}" alt="${item.name}" loading="lazy">
               </div>
               <button slot="ar-button" class="ar-button">
                 <span class="loading-spinner" id="spinner-${item.id}" style="display:none;"></span>
@@ -497,7 +506,9 @@
       emblaCarousel = new EmblaCarousel(document.querySelector('.carousel'), { 
         loop: true,
         align: 'center',
-        dragFree: true
+        dragFree: true,
+        startIndex: 0,
+        skipSnaps: true
       });
       
       // Add click listeners to prev/next buttons
@@ -512,7 +523,8 @@
           if (item) {
             const modelViewer = document.getElementById(`model-${item.id}`);
             if (modelViewer && !modelViewer.loaded) {
-              modelViewer.load(); // Force load if not already loaded
+              modelViewer.reveal = 'auto';
+              modelViewer.load();
             }
           }
         });
