@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TASTE ITALY IN 3D</title>
+  <title>AR Restaurant Menu</title>
   
   <!-- Include Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -184,25 +184,28 @@
       background: #f9fafb;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
-    
+
+    /* AR Button Styling from Oak Cafe */
     .ar-button {
+      background: linear-gradient(135deg, #D4AF37 0%, #E8C547 100%) !important;
+      color: #1A3A2F !important;
       position: absolute;
-      bottom: 16px;
+      bottom: 12px;
       left: 50%;
       transform: translateX(-50%);
-      background: black;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 16px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-      z-index: 10;
+      padding: 10px 15px;
+      font-weight: 600;
+      animation: pulse 2s infinite;
+      font-size: 0.85rem;
+      width: calc(100% - 24px);
+      max-width: 220px;
+      border-radius: 25px !important;
     }
     
-    .ar-button:hover {
-      background: #333;
+    @keyframes pulse {
+      0% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.03); }
+      100% { transform: translateX(-50%) scale(1); }
     }
   </style>
 </head>
@@ -215,8 +218,8 @@
   
   <main class="flex-grow py-8 px-4 bg-gray-50">
     <div class="container mx-auto max-w-6xl">
-      <h1 class="text-3xl md:text-4xl font-bold text-center mb-3">TASTE ITALY IN 3D</h1>
-      <p class="text-center text-gray-600 mb-10 max-w-xl mx-auto">SCAN - TAP - POINT</p>
+      <h1 class="text-3xl md:text-4xl font-bold text-center mb-3">Immerse yourself in our menu</h1>
+      <p class="text-center text-gray-600 mb-10 max-w-xl mx-auto">through the magic of augmented reality</p>
       
       <div class="carousel">
         <div class="carousel-container" id="menuCarousel">
@@ -243,7 +246,7 @@
   <div id="arModal" class="modal">
     <div class="modal-content">
       <div class="flex justify-between items-center p-6 border-b">
-        <h3 id="modalTitle" class="font-bold text-2xl">Margherita</h3>
+        <h3 id="modalTitle" class="font-bold text-2xl">Food Item Name</h3>
         <button id="closeModal" class="p-1 rounded-full hover:bg-gray-100 transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -264,42 +267,25 @@
           shadow-intensity="1"
           environment-image="neutral"
           exposure="0.8"
-          class="hidden"
-          quick-look-browsers="safari chrome"
-          xr-environment
-          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb">
-          <button slot="ar-button" class="ar-button">
-            View in your space
-          </button>
+          class="hidden">
+          <button slot="ar-button" class="ar-button">VIEW IN YOUR SPACE</button>
         </model-viewer>
       </div>
       
       <div class="p-6">
-        <p id="modalDescription" class="text-gray-600 mb-4">San Marzano tomato sauce, fresh mozzarella, basil, olive oil</p>
-        <p class="text-gray-500 text-sm mb-6">Estimated time: 20-25 minutes</p>
-        
-        <div class="mb-6">
-          <h4 class="font-medium mb-2">Add-ons:</h4>
-          <ul class="list-disc pl-5 text-sm text-gray-600">
-            <li>Extra Cheese (+2.00 ID)</li>
-            <li>Pepperoni (+1.50 ID)</li>
-            <li>Mushrooms (+1.00 ID)</li>
-          </ul>
-        </div>
-        
+        <p id="modalDescription" class="text-gray-600 mb-6">Description of the food item will appear here.</p>
         <button id="viewInAR" class="w-full bg-black text-white px-6 py-4 rounded-lg hover:bg-gray-800 transition btn font-medium">
-          VIEW IN YOUR SPACE
+          VIEW IN AR
         </button>
       </div>
       
       <div class="p-6 bg-gray-50 border-t">
         <p class="font-medium mb-3">How to use AR:</p>
         <ol class="list-decimal ml-5 space-y-2 text-sm text-gray-600">
-          <li>Click "View in your space" to open camera</li>
           <li>Point your camera at a flat surface</li>
           <li>Move your phone slowly to detect the surface</li>
-          <li>The 3D model will appear automatically</li>
-          <li>Pinch to resize or drag to reposition</li>
+          <li>The 3D model will appear on the detected surface</li>
+          <li>Pinch to resize or drag to reposition the model</li>
         </ol>
       </div>
     </div>
@@ -312,37 +298,43 @@
         id: 1,
         name: "Margherita",
         description: "San Marzano tomato sauce, fresh mozzarella, basil, olive oil",
-        time: "20-25 minutes",
-        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-        addons: [
-          "Extra Cheese (+2.00 ID)",
-          "Pepperoni (+1.50 ID)",
-          "Mushrooms (+1.00 ID)"
-        ]
+        price: 14.0,
+        modelUrl: "models/AR-Code-1744457119.glb"
       },
       {
         id: 2,
         name: "Prosciutto",
         description: "Tomato sauce, mozzarella, prosciutto di Parma, arugula, parmesan",
-        time: "15-20 minutes",
-        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-        addons: [
-          "Extra Cheese (+2.00 ID)",
-          "Mushrooms (+1.00 ID)",
-          "Olives (+1.00 ID)"
-        ]
+        price: 18.0,
+        modelUrl: "models/AR-Code-1744457923.glb"
       },
       {
         id: 3,
+        name: "Tartufo",
+        description: "Truffle cream, mozzarella, mushrooms, truffle oil",
+        price: 22.0,
+        modelUrl: "models/AR-Code-1744458351.glb"
+      },
+      {
+        id: 4,
+        name: "Diavola",
+        description: "Tomato sauce, spicy salami, mozzarella, chili flakes",
+        price: 16.0,
+        modelUrl: "models/AR-Code-1744458931.glb"
+      },
+      {
+        id: 5,
+        name: "Quattro Formaggi",
+        description: "Mozzarella, gorgonzola, parmesan, ricotta, arugula",
+        price: 17.0,
+        modelUrl: "models/AR-Code-1744459414.glb"
+      },
+      {
+        id: 6,
         name: "Vegetariana",
         description: "Tomato sauce, mozzarella, bell peppers, mushrooms, olives, artichokes",
-        time: "25-30 minutes",
-        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-        addons: [
-          "Extra Cheese (+2.00 ID)",
-          "Artichokes (+1.50 ID)",
-          "Sun-dried tomatoes (+1.50 ID)"
-        ]
+        price: 15.0,
+        modelUrl: "models/AR-Code-1744462038 (1).glb"
       }
     ];
     
@@ -357,6 +349,19 @@
     const prevButton = document.getElementById('prevButton');
     const nextButton = document.getElementById('nextButton');
     const viewInARButton = document.getElementById('viewInAR');
+    
+    // Cache for preloaded models
+    const modelCache = {};
+    
+    // Preload models
+    function preloadModels() {
+      // Only preload the first 3 models to save bandwidth
+      for (let i = 0; i < Math.min(3, menuItems.length); i++) {
+        fetch(menuItems[i].modelUrl, { method: 'HEAD' })
+          .then(() => { modelCache[menuItems[i].id] = true; })
+          .catch(err => console.error('Error preloading model:', err));
+      }
+    }
     
     // Render menu items
     function renderMenuItems() {
@@ -375,7 +380,8 @@
             <div class="p-5 flex-grow">
               <h3 class="font-bold text-xl mb-2">${item.name}</h3>
               <p class="text-gray-600 text-sm mb-4">${item.description}</p>
-              <div class="flex justify-end">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-lg">$${item.price.toFixed(2)}</span>
                 <button
                   data-id="${item.id}"
                   class="view-in-3d bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition btn"
@@ -418,22 +424,38 @@
       loadingSpinner.classList.remove('hidden');
       modelViewer.classList.add('hidden');
       
+      // Reset the modelViewer completely
+      while (modelViewer.firstChild) {
+        modelViewer.removeChild(modelViewer.firstChild);
+      }
+      
+      // Clear all attributes
+      const attributes = modelViewer.getAttributeNames();
+      for (const attr of attributes) {
+        if (attr !== 'id' && !attr.startsWith('ar') && attr !== 'camera-controls' && attr !== 'auto-rotate' && attr !== 'rotation-per-second') {
+          modelViewer.removeAttribute(attr);
+        }
+      }
+      
       // Set the model source
-      modelViewer.src = item.modelUrl;
+      modelViewer.setAttribute('src', item.modelUrl);
+      
+      // Add alt text
       modelViewer.setAttribute('alt', `3D model of ${item.name}`);
       
-      // Update additional information
-      document.querySelector('#arModal .text-gray-500').textContent = `Estimated time: ${item.time}`;
-      
-      const addonsList = document.querySelector('#arModal ul');
-      addonsList.innerHTML = item.addons.map(addon => `<li>${addon}</li>`).join('');
+      // Add AR button
+      const arButton = document.createElement('button');
+      arButton.slot = 'ar-button';
+      arButton.className = 'ar-button';
+      arButton.textContent = 'VIEW IN YOUR SPACE';
+      modelViewer.appendChild(arButton);
       
       // When the model is loaded, hide spinner and show model
       modelViewer.addEventListener('load', function modelLoaded() {
         loadingSpinner.classList.add('hidden');
         modelViewer.classList.remove('hidden');
         modelViewer.removeEventListener('load', modelLoaded);
-      }, { once: true });
+      });
       
       // If loading takes too long, show model anyway after a timeout
       setTimeout(() => {
@@ -445,20 +467,32 @@
     // Close modal
     function hideARModal() {
       arModal.style.display = 'none';
+      
+      // Complete cleanup of the model-viewer
+      modelViewer.setAttribute('src', '');
       modelViewer.classList.add('hidden');
+      
+      // Force browser to release resources
+      setTimeout(() => {
+        modelViewer.innerHTML = '';
+      }, 100);
     }
     
     // Add event listeners
     document.addEventListener('DOMContentLoaded', () => {
       renderMenuItems();
       initCarousel();
+      preloadModels();
       
       // Add listeners for View in 3D buttons
       document.addEventListener('click', (e) => {
         const button = e.target.closest('.view-in-3d');
         if (button) {
           const itemId = parseInt(button.dataset.id);
-          showARModal(itemId);
+          hideARModal(); // Ensure complete cleanup before opening new model
+          setTimeout(() => {
+            showARModal(itemId);
+          }, 100);
         }
       });
       
@@ -472,7 +506,7 @@
         }
       });
       
-      // AR button click - directly activate AR
+      // AR button click
       viewInARButton.addEventListener('click', () => {
         modelViewer.activateAR();
       });
